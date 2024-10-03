@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class SecurekeyApplication
 
 fun main(args: Array<String>) {
-    runApplication<SecurekeyApplication>(*args)
+	runApplication<SecurekeyApplication>(*args)
 }
