@@ -1,3 +1,6 @@
+package com.ascoder1109.securekey.security
+
+import com.ascoder1109.securekey.service.UserService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
@@ -8,19 +11,20 @@ import org.springframework.security.web.SecurityFilterChain
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+class SecurityConfig(private val userService: UserService) {
 
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
-            .csrf { it.disable() } // Disable CSRF protection
-            .authorizeHttpRequests { requests ->
-                requests
-                    .requestMatchers("/api/auth/register", "/api/auth/login").permitAll() // Allow access to these endpoints
-                    .anyRequest().authenticated() // Any other request requires authentication
+            .csrf { csrf -> csrf.disable() }
+            .authorizeHttpRequests { authz ->
+                authz
+                    .requestMatchers("/api/**").permitAll()
+                    .anyRequest().authenticated()
             }
-            .formLogin { it.permitAll() } // Enables default form-based login
-            .logout { it.permitAll() } // Enables default logout functionality
+            .formLogin { form ->
+                form.loginPage("/login").permitAll()
+            }
 
         return http.build()
     }

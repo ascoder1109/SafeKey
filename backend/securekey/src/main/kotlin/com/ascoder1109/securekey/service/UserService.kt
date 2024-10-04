@@ -1,30 +1,26 @@
-import jakarta.transaction.Transactional
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.security.crypto.password.PasswordEncoder
+package com.ascoder1109.securekey.service
+
+import com.ascoder1109.securekey.model.User
+import com.ascoder1109.securekey.repository.UserRepository
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.stereotype.Service
 
 @Service
-class UserService @Autowired constructor(
-    private val userRepository: UserRepository,
-    private val passwordEncoder: PasswordEncoder // Inject PasswordEncoder
-) {
+class UserService(private val userRepository: UserRepository) {
 
-    @Transactional
-    fun registerUser(user: User): User {
-        if (userRepository.findByEmail(user.email).isPresent) {
-            throw IllegalArgumentException("Email already exists")
+    private val passwordEncoder = BCryptPasswordEncoder()
+
+    fun registerUser(name: String, email: String, password: String): User {
+        if (userRepository.findByEmail(email) != null) {
+            throw IllegalArgumentException("User with email $email already exists")
         }
-        user.password = passwordEncoder.encode(user.password)
+        val encodedPassword = passwordEncoder.encode(password)
+        val user = User(name = name, email = email, password = encodedPassword)
         return userRepository.save(user)
     }
 
-    fun getUserByEmail(email: String): User? {
-        return userRepository.findByEmail(email).orElse(null)
+    fun authenticateUser(email: String, password: String): User? {
+        val user = userRepository.findByEmail(email) ?: return null
+        return if (passwordEncoder.matches(password, user.password)) user else null
     }
-
-    fun checkPassword(rawPassword: String, encodedPassword: String): Boolean {
-        return passwordEncoder.matches(rawPassword, encodedPassword)
-    }
-
-    // Other methods remain the same...
 }
